@@ -48,7 +48,7 @@ class CNN(BaseNetwork):
 
     
     def forward(self, x):
-        fmap = self. feature(x)
+        fmap = self.feature(x)
         return fmap
         
 
@@ -58,4 +58,4 @@ if __name__ == "__main__":
     y = cnn_t(x)
 
     import ipdb; ipdb.set_trace()
-    
+
