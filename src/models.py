@@ -16,7 +16,7 @@ class DeepJointFilter(nn.Module):
     def forward(self, target_image, guide_image):
         fmap1 = self.cnn_t(target_image)
         fmap2 = self.cnn_g(guide_image)
-        output = self.cnn_f(torch.cat([fmap1, fmap2]))
+        output = self.cnn_f(torch.cat([fmap1, fmap2], dim=1))
         return output
 
     
