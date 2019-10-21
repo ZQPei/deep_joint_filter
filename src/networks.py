@@ -44,6 +44,8 @@ class CNN(BaseNetwork):
                 nn.ReLU(inplace=True)
             ]
 
+        import ipdb; ipdb.set_trace()
+
         self.feature = nn.Sequential(*layers)
 
     
