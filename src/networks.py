@@ -37,14 +37,14 @@ class BaseNetwork(nn.Module):
 
 class CNN(BaseNetwork):
     def __init__(self, num_conv=3, c_in=1, channel=[96,48,1], kernel_size=[9,1,5], stride=[1,1,1], padding=[2,2,2]):
+        super(CNN, self).__init__()
+
         layers = []
         for i in range(num_conv):
             layers += [
                 nn.Conv2d(c_in if i == 0 else channel[i-1], channel[i], kernel_size[i], stride[i], padding[i], bias=True),
                 nn.ReLU(inplace=True)
             ]
-
-        import ipdb; ipdb.set_trace()
 
         self.feature = nn.Sequential(*layers)
 
