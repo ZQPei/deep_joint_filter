@@ -41,12 +41,13 @@ class CNN(BaseNetwork):
 
         layers = []
         for i in range(num_conv):
-            layers += [
-                nn.Conv2d(c_in if i == 0 else channel[i-1], channel[i], kernel_size[i], stride[i], padding[i], bias=True),
-                nn.ReLU(inplace=True)
-            ]
+            layers += [nn.Conv2d(c_in if i == 0 else channel[i-1], channel[i], kernel_size[i], stride[i], padding[i], bias=True)]
+            if i != num_conv-1:
+                layers += [nn.ReLU(inplace=True)]
 
         self.feature = nn.Sequential(*layers)
+
+        self.init_weights()
 
     
     def forward(self, x):

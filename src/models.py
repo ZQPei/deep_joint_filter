@@ -1,10 +1,42 @@
 import torch
 import torch.nn as nn
+import os
 
 from .networks import CNN
 
 
-class DeepJointFilter(nn.Module):
+class BaseModel(nn.Module):
+    def __init__(self, name, config):
+        super(BaseModel, self).__init__()
+
+        self.name = name
+        self.iteration = 0
+
+        self.weight_path = os.path.join(config.config_path, name + ".pth")
+
+    
+    def load(self):
+        if os.path.exists(self.weight_path):
+            print('Loading %s ...' % self.name)
+
+            if torch.cuda.is_available():
+                data = torch.load(self.weight_path)
+            else:
+                data = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
+
+            self.iteration = data['iteration']
+
+    
+    def save(self):
+        print('Saving %s...\n' % self.name)
+        torch.save({
+            'iteration': self.iteration,
+            'encoder': self.encoder.state_dict(),
+        }, self.weight_path)
+        
+
+
+class DeepJointFilter(BaseModel):
     def __init__(self):
         super(DeepJointFilter, self).__init__()
 
