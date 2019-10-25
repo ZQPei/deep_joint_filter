@@ -1,3 +1,34 @@
 name: "deep_joint_filter"
 
 
+model:
+  cnn_t:
+    num_conv: 3
+    c_in: 1
+    channel: [96,48,1]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [2,2,2]
+
+  cnn_g:
+    num_conv: 3
+    c_in: 3
+    channel: [96,48,1]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [2,2,2]
+
+  cnn_f:
+    num_conv: 3
+    c_in: 2
+    channel: [64,32,1]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [0,0,0]
+
+
+trainer:
+  lr: 1e-4
+  momentum: 1e-5
+
+

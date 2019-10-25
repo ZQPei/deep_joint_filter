@@ -53,12 +53,31 @@ class CNN(BaseNetwork):
     def forward(self, x):
         fmap = self.feature(x)
         return fmap
+
+
+class DeepJointFilter(BaseNetwork):
+    def __init__(self, init_weights=True):
+        self.cnn_t = CNN(3, 1, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
+        self.cnn_g = CNN(3, 3, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
+        self.cnn_f = CNN(3, 2, [64,32,1], [9,1,5], [1,1,1], [0,0,0])
+
+        if init_weights:
+            self.init_weights()
+
+
+    def forward(self, target_image, guide_image):
+        fmap1 = self.cnn_t(target_image)
+        fmap2 = self.cnn_g(guide_image)
+        output = self.cnn_f(torch.cat([fmap1, fmap2], dim=1))
+        return output
         
 
 if __name__ == "__main__":
     cnn_t = CNN()
     x = torch.randn(10,1,32,32)
     y = cnn_t(x)
+
+    
 
     import ipdb; ipdb.set_trace()
 

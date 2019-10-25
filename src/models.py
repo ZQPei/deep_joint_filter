@@ -1,55 +1,78 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import os
 
-from .networks import CNN
+from .networks import DeepJointFilter
 
 
 class BaseModel(nn.Module):
-    def __init__(self, name, config):
+    def __init__(self, config):
         super(BaseModel, self).__init__()
 
-        self.name = name
         self.iteration = 0
-
         self.weight_path = os.path.join(config.config_path, name + ".pth")
 
-    
     def load(self):
-        if os.path.exists(self.weight_path):
-            print('Loading %s ...' % self.name)
+        raise NotImplementedError
 
-            if torch.cuda.is_available():
-                data = torch.load(self.weight_path)
-            else:
-                data = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
-
-            self.iteration = data['iteration']
-
-    
     def save(self):
-        print('Saving %s...\n' % self.name)
-        torch.save({
-            'iteration': self.iteration,
-            'encoder': self.encoder.state_dict(),
-        }, self.weight_path)
+        raise NotImplementedError
         
 
 
-class DeepJointFilter(BaseModel):
-    def __init__(self):
-        super(DeepJointFilter, self).__init__()
+class DeepJointFilterTrainer(BaseModel):
+    def __init__(self, config):
+        super(DeepJointFilterTrainer, self).__init__()
 
-        self.cnn_t = CNN(3, 1, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
-        self.cnn_g = CNN(3, 3, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
-        self.cnn_f = CNN(3, 2, [64,32,1], [9,1,5], [1,1,1], [0,0,0])
+        self.config = config
+
+        self.djf = DeepJointFilter()
+
+        self.l2_loss = nn.MSELoss()
+        self.optimizer = optim.SGD(
+            params=self.djf.parameters(),
+            lr=float(config.trainer.lr),
+            momentum=float(config.trainer.momentum)
+        )
 
 
-    def forward(self, target_image, guide_image):
-        fmap1 = self.cnn_t(target_image)
-        fmap2 = self.cnn_g(guide_image)
-        output = self.cnn_f(torch.cat([fmap1, fmap2], dim=1))
-        return output
+    def process(self, target_image, guide_image, gt):
+        output = self.djf(target_image, guide_image)
+
+        loss = 0
+
+        mse_loss = self.l2_loss(output, gt)
+        
+        loss += mse_loss
+        loss.backward()
+        self.optimizer.step()
+
+        logs = [loss]
+
+        return output, loss, logs
+
+
+    def load(self):
+        print("loading %s..."%(self.config.name))
+
+        loaded_dict = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
+        self.djf.load_state_dict(loaded_dict['model'])
+        self.iteration = loaded_dict['iteration']
+
+
+    def save(self):
+        print("saving %s..."%(self.config.name))
+
+        torch.save({
+            'iteration': self.iteration,
+            'model': self.djf.state_dict()
+        }, self.weight_path)
+
+
+
+
+    
 
     
 
