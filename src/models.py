@@ -11,34 +11,44 @@ class BaseModel(nn.Module):
         super(BaseModel, self).__init__()
 
         self.iteration = 0
-        self.weight_path = os.path.join(config.config_path, name + ".pth")
+        self.weight_path = os.path.join(config.config_path, config.name + ".pth")
 
     def load(self):
-        raise NotImplementedError
+        print("loading %s..."%(self.config.name))
+
+        loaded_dict = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
+        self.model.load_state_dict(loaded_dict['model'])
+        self.iteration = loaded_dict['iteration']
+
 
     def save(self):
-        raise NotImplementedError
+        print("saving %s..."%(self.config.name))
+
+        torch.save({
+            'iteration': self.iteration,
+            'model': self.model.state_dict()
+        }, self.weight_path)
         
 
 
-class DeepJointFilterTrainer(BaseModel):
+class DeepJointFilterModel(BaseModel):
     def __init__(self, config):
-        super(DeepJointFilterTrainer, self).__init__()
+        super(DeepJointFilterModel, self).__init__()
 
         self.config = config
 
-        self.djf = DeepJointFilter()
+        self.model = DeepJointFilter()
 
         self.l2_loss = nn.MSELoss()
         self.optimizer = optim.SGD(
-            params=self.djf.parameters(),
+            params=self.model.parameters(),
             lr=float(config.trainer.lr),
             momentum=float(config.trainer.momentum)
         )
 
 
     def process(self, target_image, guide_image, gt):
-        output = self.djf(target_image, guide_image)
+        output = self.model(target_image, guide_image)
 
         loss = 0
 
@@ -48,26 +58,12 @@ class DeepJointFilterTrainer(BaseModel):
         loss.backward()
         self.optimizer.step()
 
-        logs = [loss]
+        logs = ["l_mse", mse_loss.item()]
 
         return output, loss, logs
 
 
-    def load(self):
-        print("loading %s..."%(self.config.name))
 
-        loaded_dict = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
-        self.djf.load_state_dict(loaded_dict['model'])
-        self.iteration = loaded_dict['iteration']
-
-
-    def save(self):
-        print("saving %s..."%(self.config.name))
-
-        torch.save({
-            'iteration': self.iteration,
-            'model': self.djf.state_dict()
-        }, self.weight_path)
 
 
 

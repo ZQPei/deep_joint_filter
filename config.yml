@@ -1,5 +1,6 @@
 name: "deep_joint_filter"
 
+log_file: ""
 
 model:
   cnn_t:

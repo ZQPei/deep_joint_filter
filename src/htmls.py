@@ -29,8 +29,8 @@ class HTML(object):
                         with td(style="word-wrap: break-word;", halign="center", valign="top"):
                             with p():
                                 basename = basename_list[idx]
-                                linker = os.path.join(path, basename)
-                                with a(href=linker):
+                                linker = os.path.join(path, basename) 
+                                with a(href=linker):555
                                     img(style="width:%dpx" %(width), src=linker)
                                     idx += 1
                                 br()
