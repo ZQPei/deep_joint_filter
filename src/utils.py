@@ -1,11 +1,51 @@
 import os
 import sys
+import glob
+import time
 import torch
+import numpy as np
+import PIL.Image as Image
 
 
 def create_dir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+
+def is_image(fn):
+    return True if os.path.splitext(fn)[1] in ['.jpg', '.jpeg', '.png', '.bmp'] else False
+
+
+def load_flist(path):
+    assert isinstance(path, str) and os.path.isdir(path)
+    flist = list(filter(is_image, glob.glob(path + "/*")))
+    flist.sort()
+    return flist
+
+
+def stitch_images(inputs, *outputs, img_per_row=2):
+    gap = 5
+    columns = len(outputs) + 1
+
+    width, height = inputs[0][:, :, 0].shape
+    img = Image.new('RGB', (width * img_per_row * columns + gap * (img_per_row - 1), height * int(len(inputs) / img_per_row)))
+    images = [inputs, *outputs]
+
+    for ix in range(len(inputs)):
+        xoffset = int(ix % img_per_row) * width * columns + int(ix % img_per_row) * gap
+        yoffset = int(ix / img_per_row) * height
+
+        for cat in range(len(images)):
+            im = np.array((images[cat][ix]).cpu()).astype(np.uint8).squeeze()
+            im = Image.fromarray(im)
+            img.paste(im, (xoffset + cat * width, yoffset))
+
+    return img
+
+
+def imsave(img, path):
+    im = Image.fromarray(img.cpu().numpy().astype(np.uint8).squeeze())
+    im.save(path)
 
 
 class Progbar(object):

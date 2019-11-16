@@ -30,7 +30,7 @@ class HTML(object):
                             with p():
                                 basename = basename_list[idx]
                                 linker = os.path.join(path, basename) 
-                                with a(href=linker):555
+                                with a(href=linker):
                                     img(style="width:%dpx" %(width), src=linker)
                                     idx += 1
                                 br()

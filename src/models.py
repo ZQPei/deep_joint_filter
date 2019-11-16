@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import os
 
-from .networks import DeepJointFilter
+from .networks import DeepJointFilterNetwork
 
 
 class BaseModel(nn.Module):
@@ -33,42 +33,46 @@ class BaseModel(nn.Module):
 
 class DeepJointFilterModel(BaseModel):
     def __init__(self, config):
-        super(DeepJointFilterModel, self).__init__()
+        super(DeepJointFilterModel, self).__init__(config)
 
         self.config = config
 
-        self.model = DeepJointFilter()
+        self.model = DeepJointFilterNetwork(config)
 
         self.l2_loss = nn.MSELoss()
-        self.optimizer = optim.SGD(
+        # self.optimizer = optim.SGD(
+        #     params=self.model.parameters(),
+        #     lr=float(config.trainer.lr),
+        #     momentum=float(config.trainer.momentum)
+        # )
+        self.optimizer = optim.Adam(
             params=self.model.parameters(),
             lr=float(config.trainer.lr),
-            momentum=float(config.trainer.momentum)
+            betas=(config.trainer.beta1, config.trainer.beta2)
         )
 
 
     def process(self, target_image, guide_image, gt):
+        if self.training:
+            self.iteration += 1
+
+        self.optimizer.zero_grad()
+
         output = self.model(target_image, guide_image)
 
         loss = 0
-
         mse_loss = self.l2_loss(output, gt)
-        
-        loss += mse_loss
-        loss.backward()
-        self.optimizer.step()
 
-        logs = ["l_mse", mse_loss.item()]
+        loss += mse_loss
+
+        logs = [("l_mse", mse_loss.item())]
 
         return output, loss, logs
 
 
+    def backward(self, loss):
+        loss.backward()
+        self.optimizer.step()
 
 
-
-
-
-    
-
-    
 

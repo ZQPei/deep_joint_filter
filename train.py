@@ -1,13 +1,14 @@
 import os
 import torch
 
-from src.models import DeepJointFilter
+from src.parser import YamlParser
+from src.deep_joint_filter import DeepJointFilter
 
 
 if __name__ == "__main__":
-    net  = DeepJointFilter()
-    target_image = torch.randn(10,1,32,32)
-    guide_image = torch.randn(10,3,32,32)
-    output = net(target_image, guide_image)
+    config = YamlParser(config_path="./config.yml")
+    # import ipdb; ipdb.set_trace()
+    deep_joint_filter  = DeepJointFilter(config)
+    deep_joint_filter.train()
 
     import ipdb; ipdb.set_trace()

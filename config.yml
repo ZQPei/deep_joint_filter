@@ -1,11 +1,11 @@
 name: "deep_joint_filter"
 
-log_file: ""
 
 model:
   cnn_t:
     num_conv: 3
-    c_in: 1
+    c_in: 3
+    c_out: 1
     channel: [96,48,1]
     kernel_size: [9,1,5]
     stride: [1,1,1]
@@ -14,6 +14,7 @@ model:
   cnn_g:
     num_conv: 3
     c_in: 3
+    c_out: 1
     channel: [96,48,1]
     kernel_size: [9,1,5]
     stride: [1,1,1]
@@ -22,14 +23,40 @@ model:
   cnn_f:
     num_conv: 3
     c_in: 2
+    c_out: 1
     channel: [64,32,1]
     kernel_size: [9,1,5]
     stride: [1,1,1]
-    padding: [0,0,0]
+    padding: [2,2,2]
+
+
+dataset:
+  name: "none"
+  input_size: [256, 256]
+  path:
+    target: /data/zf/gan/yxf/new_data/gauss50/noise/
+    guide: /data/zf/gan/yxf/new_data/gauss50/cut/
+    gt: /data/zf/gan/yxf/new_data/gauss50/ori/
+
+
+device: cuda
 
 
 trainer:
+  batch_size: 32
+  max_iters: 1e5
   lr: 1e-4
+  beta1: 0.0
+  beta2: 0.9
   momentum: 1e-5
 
 
+verbose: True
+html: True
+log_interval: 10
+eval_interval: 50
+sample_interval: 50
+save_path: checkpoints
+samples_path: samples
+outputs_path: results
+sample_size: 8

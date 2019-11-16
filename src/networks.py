@@ -36,7 +36,7 @@ class BaseNetwork(nn.Module):
 
 
 class CNN(BaseNetwork):
-    def __init__(self, num_conv=3, c_in=1, channel=[96,48,1], kernel_size=[9,1,5], stride=[1,1,1], padding=[2,2,2]):
+    def __init__(self, num_conv=3, c_in=1, c_out=1, channel=[96,48,1], kernel_size=[9,1,5], stride=[1,1,1], padding=[2,2,2]):
         super(CNN, self).__init__()
 
         layers = []
@@ -55,11 +55,13 @@ class CNN(BaseNetwork):
         return fmap
 
 
-class DeepJointFilter(BaseNetwork):
-    def __init__(self, init_weights=True):
-        self.cnn_t = CNN(3, 1, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
-        self.cnn_g = CNN(3, 3, [96,48,1], [9,1,5], [1,1,1], [2,2,2])
-        self.cnn_f = CNN(3, 2, [64,32,1], [9,1,5], [1,1,1], [0,0,0])
+class DeepJointFilterNetwork(BaseNetwork):
+    def __init__(self, config, init_weights=True):
+        super(DeepJointFilterNetwork, self).__init__()
+
+        self.cnn_t = CNN(**config.model.cnn_t)
+        self.cnn_g = CNN(**config.model.cnn_g)
+        self.cnn_f = CNN(**config.model.cnn_f)
 
         if init_weights:
             self.init_weights()
