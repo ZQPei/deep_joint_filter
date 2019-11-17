@@ -13,7 +13,7 @@ def create_dir(dir):
 
 
 def is_image(fn):
-    return True if os.path.splitext(fn)[1] in ['.jpg', '.jpeg', '.png', '.bmp'] else False
+    return True if os.path.splitext(fn)[1] in ['.jpg', '.jpeg', '.png', '.bmp', ".tiff"] else False
 
 
 def load_flist(path):

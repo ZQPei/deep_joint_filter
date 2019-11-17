@@ -3,6 +3,7 @@ import torch
 import torchvision
 import torchvision.transforms.functional as F
 import PIL.Image as Image
+import numpy as np
 from torch.utils.data import DataLoader
 from scipy.misc import imread, imresize
 
@@ -10,14 +11,14 @@ from .utils import load_flist
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, config):
+    def __init__(self, config, mode="train"):
         super(Dataset, self).__init__()
 
         self.config = config
 
-        self.flist_target = load_flist(config.dataset.path.target)
-        self.flist_guide = load_flist(config.dataset.path.guide)
-        self.flist_gt = load_flist(config.dataset.path.gt)
+        self.flist_target = load_flist(config.dataset[mode].target)
+        self.flist_guide = load_flist(config.dataset[mode].guide)
+        self.flist_gt = load_flist(config.dataset[mode].gt)
         assert (len(self.flist_target) == len(self.flist_guide) and len(self.flist_target) == len(self.flist_gt))
         self.total = len(self.flist_target)
 
@@ -55,6 +56,9 @@ class Dataset(torch.utils.data.Dataset):
         img_guide = self.transform(img_guide)
         img_gt = self.transform(img_gt)
 
+        if self.config.dataset.generate_noise:
+            img_target = add_gaussian_noise(img_gt, self.config.dataset.noise_sigma)
+        
         tensor_target = self.to_tensor(img_target)
         tensor_guide = self.to_tensor(img_guide)
         tensor_gt = self.to_tensor(img_gt)
@@ -64,6 +68,8 @@ class Dataset(torch.utils.data.Dataset):
 
     def transform(self, img):
         img = self.resize(img)
+        if img.ndim == 2:
+            img = np.stack([img, img, img], axis=2)
 
         return img
 
@@ -74,7 +80,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def to_tensor(self, img):
         img = Image.fromarray(img)
-        img_t = F.to_tensor(img).float()
+        img_t = F.to_tensor(img).float()  # scale of [0, 1]
 
         return img_t
 
@@ -91,6 +97,28 @@ class Dataset(torch.utils.data.Dataset):
                 yield item
     
 
-
-
+ 
+def add_gaussian_noise(image_in, noise_sigma=25):
+    # image_in [0, 255]
+    temp_image = np.float64(np.copy(image_in))
+ 
+    h = temp_image.shape[0]
+    w = temp_image.shape[1]
+    noise = np.random.randn(h, w) * noise_sigma
+ 
+    noisy_image = np.zeros(temp_image.shape, np.float64)
+    if len(temp_image.shape) == 2:
+        noisy_image = temp_image + noise
+    else:
+        noisy_image[:,:,0] = temp_image[:,:,0] + noise
+        noisy_image[:,:,1] = temp_image[:,:,1] + noise
+        noisy_image[:,:,2] = temp_image[:,:,2] + noise
+    """
+    print('min,max = ', np.min(noisy_image), np.max(noisy_image))
+    print('type = ', type(noisy_image[0][0][0]))
+    """
+    noisy_image[noisy_image > 255] = 255.
+    noisy_image[noisy_image < 0] = 0
+    noisy_image = np.uint8(noisy_image)
+    return noisy_image
 

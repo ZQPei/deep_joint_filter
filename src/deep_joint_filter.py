@@ -17,9 +17,9 @@ class DeepJointFilter(object):
         self.config = config
         name = config.name + time.strftime("_%y_%d_%H_%M")
 
-        self.train_dataset = Dataset(config)
-        self.val_dataset = Dataset(config)
-        self.test_dataset = Dataset(config)
+        self.train_dataset = Dataset(config, mode="train")
+        self.val_dataset = Dataset(config, mode="val")
+        self.test_dataset = Dataset(config, mode="test")
         self.sample_iterator = self.val_dataset.create_iterator(config.sample_size)
         self.model = DeepJointFilterModel(config).to(config.device)
         self.psnr = PSNR(255.0).to(config.device)
@@ -114,7 +114,6 @@ class DeepJointFilter(object):
 
 
 
-
     def evaluate(self):
         val_loader = DataLoader(
             self.val_dataset,
@@ -199,7 +198,8 @@ class DeepJointFilter(object):
     def postprocess(self, img, to_byte=True):
         img = img.permute(0, 2, 3, 1)
         if to_byte:
-            # [0, 1] => [0, 255]
+            # map to [0, 255]
+            img = img.clamp(0,1)
             img = img * 255.0
             img = img.byte()
         return img
