@@ -11,7 +11,7 @@ class BaseModel(nn.Module):
         super(BaseModel, self).__init__()
 
         self.iteration = 0
-        self.weight_path = os.path.join(config.config_path, config.name + ".pth")
+        self.weight_path = os.path.join(config.config_path, "output", config.name, "checkpoints", config.name + ".pth")
 
     def load(self):
         print("loading %s..."%(self.config.name))

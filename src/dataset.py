@@ -1,4 +1,5 @@
 import os
+import random
 import torch
 import torchvision
 import torchvision.transforms.functional as F
@@ -55,31 +56,68 @@ class Dataset(torch.utils.data.Dataset):
         img_gt = imread(fn_gt)
 
         # transform
-        img_target = self.transform(img_target)
-        img_guide = self.transform(img_guide)
-        img_gt = self.transform(img_gt)
-
-        if self.config.dataset.generate_noise:
-            img_target = add_gaussian_noise(img_gt, self.config.dataset.noise_sigma)
-        
-        # to tensor
-        tensor_target = self.to_tensor(img_target)
-        tensor_guide = self.to_tensor(img_guide)
-        tensor_gt = self.to_tensor(img_gt)
+        tensor_target, tensor_guide, tensor_gt = self.transform(img_target, img_guide, img_gt)
 
         return tensor_target, tensor_guide, tensor_gt
 
 
-    def transform(self, img):
-        img = self.resize(img)
+    def transform(self, img_target, img_guide, img_gt):
+        # to 3 channels
+        img_target = self.check_channels(img_target)
+        img_guide = self.check_channels(img_guide)
+        img_gt = self.check_channels(img_gt)
+
+        # random crop when training and center crop when testing
+        if self.mode == "train":
+            img_target, img_guide, img_gt = self.random_crop(img_target, img_guide, img_gt)
+        else:
+            img_target, img_guide, img_gt = self.center_crop(img_target, img_guide, img_gt)
+
+        # resize
+        img_target = self.resize(img_target)
+        img_guide = self.resize(img_guide)
+        img_gt = self.resize(img_gt)
+
+        # add gaussian noise mannually
+        if self.config.dataset.generate_noise:
+            img_target = add_gaussian_noise(img_gt, self.config.dataset.noise_sigma)
+
+        # to_tensor
+        tensor_target = self.to_tensor(img_target)
+        tensor_guide = self.to_tensor(img_guide)
+        tensor_gt = self.to_tensor(img_gt)
+        
+        return tensor_target, tensor_guide, tensor_gt
+
+    
+    def check_channels(self, img):
         if img.ndim == 2:
             img = np.stack([img, img, img], axis=2)
-
         return img
 
 
     def resize(self, img):
         return imresize(img, size=self.input_size)
+
+
+    def random_crop(self, img_target, img_guide, img_gt):
+        h, w, _ = img_target.shape
+        tw, th = self.input_size
+
+        i = random.randint(0, h - th if h - th > 0 else 0)
+        j = random.randint(0, w - tw if w - tw > 0 else 0)
+
+        return img_target[i:i+th, j:j+tw, :], img_guide[i:i+th, j:j+tw, :], img_gt[i:i+th, j:j+tw, :]
+
+
+    def center_crop(self, img_target, img_guide, img_gt):
+        h, w, _ = img_target.shape
+        tw, th = self.input_size
+
+        i = int(round((h - th) / 2.)) if h - th > 0 else 0
+        j = int(round((w - tw) / 2.)) if w - tw > 0 else 0
+
+        return img_target[i:i+th, j:j+tw, :], img_guide[i:i+th, j:j+tw, :], img_gt[i:i+th, j:j+tw, :]
 
 
     def to_tensor(self, img):
@@ -94,6 +132,7 @@ class Dataset(torch.utils.data.Dataset):
             sample_loader = DataLoader(
                 dataset=self,
                 batch_size=batch_size,
+                shuffle=False,
                 drop_last=True
             )
 

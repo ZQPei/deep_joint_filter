@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 import torch
 import torch.nn as nn
 import torchvision
@@ -16,6 +17,7 @@ class DeepJointFilter(object):
     def __init__(self, config):
         self.config = config
         name = config.name + time.strftime("_%y_%d_%H_%M")
+        config.name = name
 
         self.train_dataset = Dataset(config, mode="train")
         self.val_dataset = Dataset(config, mode="val")
@@ -32,6 +34,9 @@ class DeepJointFilter(object):
         create_dir(self.save_path)
         create_dir(self.samples_path)
         create_dir(self.results_path)
+
+        # copy config file to destination folder
+        shutil.copyfile(config.config_file, os.path.join(config.config_path, "output", name, "config.yml"))
 
 
     def load(self):
@@ -108,7 +113,9 @@ class DeepJointFilter(object):
                     self.evaluate()
                     print('\nend eval...\n')
 
-
+                # save model at checkpoints
+                if self.config.save_interval and iteration % self.config.save_interval == 0:
+                    self.save()
         
         print('\nEnd training....')
 
