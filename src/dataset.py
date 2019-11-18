@@ -15,6 +15,7 @@ class Dataset(torch.utils.data.Dataset):
         super(Dataset, self).__init__()
 
         self.config = config
+        self.mode = mode
 
         self.flist_target = load_flist(config.dataset[mode].target)
         self.flist_guide = load_flist(config.dataset[mode].guide)
@@ -48,10 +49,12 @@ class Dataset(torch.utils.data.Dataset):
         fn_guide = self.flist_guide[index]
         fn_gt = self.flist_gt[index]
 
+        # imread
         img_target = imread(fn_target)
         img_guide = imread(fn_guide)
         img_gt = imread(fn_gt)
 
+        # transform
         img_target = self.transform(img_target)
         img_guide = self.transform(img_guide)
         img_gt = self.transform(img_gt)
@@ -59,6 +62,7 @@ class Dataset(torch.utils.data.Dataset):
         if self.config.dataset.generate_noise:
             img_target = add_gaussian_noise(img_gt, self.config.dataset.noise_sigma)
         
+        # to tensor
         tensor_target = self.to_tensor(img_target)
         tensor_guide = self.to_tensor(img_guide)
         tensor_gt = self.to_tensor(img_gt)
