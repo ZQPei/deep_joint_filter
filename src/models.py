@@ -13,21 +13,22 @@ class BaseModel(nn.Module):
         self.iteration = 0
         self.weight_path = os.path.join(config.config_path, "output", config.name, "checkpoints", config.name + ".pth")
 
-    def load(self):
+
+    def load(self, weight_path=None):
         print("loading %s..."%(self.config.name))
 
-        loaded_dict = torch.load(self.weight_path, map_location=lambda storage, loc: storage)
+        loaded_dict = torch.load(self.weight_path if weight_path is None else weight_path, map_location=lambda storage, loc: storage)
         self.model.load_state_dict(loaded_dict['model'])
         self.iteration = loaded_dict['iteration']
 
 
-    def save(self):
+    def save(self, weight_path=None):
         print("saving %s..."%(self.config.name))
 
         torch.save({
             'iteration': self.iteration,
             'model': self.model.state_dict()
-        }, self.weight_path)
+        }, self.weight_path if weight_path is None else weight_path)
         
 
 

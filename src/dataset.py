@@ -42,7 +42,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
     def load_name(self, index):
-        return os.path.basname(self.flist_gt[index])
+        return os.path.basename(self.flist_gt[index])
 
 
     def load_item(self, index):

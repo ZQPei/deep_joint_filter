@@ -32,7 +32,7 @@ model:
 
 dataset:
   name: "none"
-  input_size: [128, 128]
+  input_size: [256, 256]
   # train:
   #   target: /data/zf/gan/yxf/new_data/gauss50/noise/
   #   guide: /data/zf/gan/yxf/new_data/gauss50/cut/
@@ -48,7 +48,7 @@ dataset:
   #   guide: /data/zf/gan/yxf/new_data/valid_div2k/
   #   gt: /data/zf/gan/yxf/new_data/div/ori/
 
-  generate_noise: False
+  generate_noise: True
   noise_sigma: 25
 
   train:
@@ -79,11 +79,18 @@ trainer:
   # momentum: 1e-5
 
 
+tester:
+  batch_size: 1
+  
+
+
 verbose: True
 html: True
-log_interval: 10
-eval_interval: 50
-sample_interval: 50
+log_interval: 100
+eval_interval: 1000
+test_interval: 1000
+sample_interval: 1000
+save_interval: 1000
 save_path: checkpoints
 samples_path: samples
 outputs_path: results

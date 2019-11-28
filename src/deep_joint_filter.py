@@ -35,8 +35,8 @@ class DeepJointFilter(object):
         create_dir(self.samples_path)
         create_dir(self.results_path)
 
-        # copy config file to destination folder
-        shutil.copyfile(config.config_file, os.path.join(config.config_path, "output", name, "config.yml"))
+        # copy config file to output folder
+        shutil.copyfile(config.config_file, os.path.join(config.config_path, "output", name, "config.txt"))
 
 
     def load(self):
@@ -109,13 +109,24 @@ class DeepJointFilter(object):
 
                 # evaluate model at checkpoints
                 if self.config.eval_interval and iteration % self.config.eval_interval == 0:
-                    print('\nstart eval...\n')
+                    print('\nstart evaluating...\n')
                     self.evaluate()
-                    print('\nend eval...\n')
+                    print('\nend evaluating...\n')
+
+                # test model at checkpoints
+                # if self.config.test_interval and iteration % self.config.test_interval == 0:
+                #     print('\nstart testing...\n')
+                #     self.test()
+                #     print('\nend testing...\n')
 
                 # save model at checkpoints
                 if self.config.save_interval and iteration % self.config.save_interval == 0:
                     self.save()
+
+        # test model in the end
+        print('\nstart testing...\n')
+        self.test()
+        print('\nend testing...\n')
         
         print('\nEnd training....')
 
@@ -160,9 +171,38 @@ class DeepJointFilter(object):
         test_loader = DataLoader(
             dataset=self.test_dataset,
             batch_size=1,
+            shuffle=False
         )
 
         self.model.eval()
+
+        sub_path = os.path.join(self.results_path, "images")
+        create_dir(sub_path)
+
+        index = 0
+        with torch.no_grad():
+            for items in test_loader:
+                name = self.test_dataset.load_name(index)
+                save_name = os.path.splitext(name)[0] + '.png'
+                index += 1
+
+                target, guide, gt = self.cuda(*items)
+                output, loss, logs = self.model.process(target, guide, gt)
+
+
+                output = self.postprocess(output)[0]
+                imsave(output, os.path.join(sub_path, save_name))
+
+            # if self.config.html:
+            #     html_title = "results"
+            #     html_fname = os.path.join(self.results_path, "%s.html"%(html_title))
+            #     html = HTML(html_title)
+            #     flist = self.test_dataset.flist_gt
+            #     path_ext_dict = {
+            #         sub_path: [sub_path, self.config.SAVE_EXT],
+            #     }
+            #     html.compare(flist, **path_ext_dict)
+            #     html.save(html_fname)
 
 
     def sample(self):
