@@ -1,0 +1,103 @@
+name: "djf_rgbnir128_gaussion15"
+
+
+model:
+  cnn_t:
+    num_conv: 3
+    c_in: 3
+    c_out: 3
+    channel: [96,48,3]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [2,2,2]
+
+  cnn_g:
+    num_conv: 3
+    c_in: 3
+    c_out: 1
+    channel: [96,48,1]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [2,2,2]
+
+  cnn_f:
+    num_conv: 3
+    c_in: 4
+    c_out: 3
+    channel: [64,32,3]
+    kernel_size: [9,1,5]
+    stride: [1,1,1]
+    padding: [2,2,2]
+
+
+loss:
+  name: "l2"
+
+
+dataset:
+  name: "RGB-NIR"
+  input_size: [128, 128]
+  # train:
+  #   target: /data/zf/gan/yxf/new_data/gauss50/noise/
+  #   guide: /data/zf/gan/yxf/new_data/gauss50/cut/
+  #   gt: /data/zf/gan/yxf/new_data/gauss50/ori/
+
+  # val:
+  #   target: /data/zf/gan/yxf/new_data/div/noise/
+  #   guide: /data/zf/gan/yxf/new_data/valid_div2k/
+  #   gt: /data/zf/gan/yxf/new_data/div/ori/
+
+  # test:
+  #   target: /data/zf/gan/yxf/new_data/div/noise/
+  #   guide: /data/zf/gan/yxf/new_data/valid_div2k/
+  #   gt: /data/zf/gan/yxf/new_data/div/ori/
+
+  generate_noise: True
+  noise_sigma: 15
+
+  train:
+    target: /data/pzq/RGB-NIR/tiff2png/train/noise/
+    guide: /data/pzq/RGB-NIR/tiff2png/train/nir/
+    gt: /data/pzq/RGB-NIR/tiff2png/train/rgb/
+
+  val:
+    target: /data/pzq/RGB-NIR/tiff2png/test/noise/
+    guide: /data/pzq/RGB-NIR/tiff2png/test/nir/
+    gt: /data/pzq/RGB-NIR/tiff2png/test/rgb/
+
+  test:
+    target: /data/pzq/RGB-NIR/tiff2png/test/noise/
+    guide: /data/pzq/RGB-NIR/tiff2png/test/nir/
+    gt: /data/pzq/RGB-NIR/tiff2png/test/rgb/
+
+
+device: cuda
+
+
+trainer:
+  batch_size: 8
+  max_iters: 5e4
+  lr: 1e-3
+  beta1: 0.9
+  beta2: 0.999
+  # momentum: 1e-5
+
+
+tester:
+  batch_size: 1
+  
+
+
+verbose: True
+html: True
+seed: 7
+log_interval: 100
+eval_interval: 1000
+test_interval: 1000
+sample_interval: 1000
+save_interval: 1000
+save_path: outputs
+ckpt_path: checkpoints
+samples_path: samples
+outputs_path: results
+sample_size: 8

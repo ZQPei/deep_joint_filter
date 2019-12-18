@@ -1,0 +1,7 @@
+ipdb
+easydict
+dominate
+torch>=0.4.0
+torchvision>=0.2.0
+pillow
+scipy==1.0.0

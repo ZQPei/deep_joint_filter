@@ -15,8 +15,10 @@ class YamlParser(edict):
             with open(config_file, 'r') as fo:
                 cfg_dict.update(yaml.load(fo.read()))
                 cfg_dict['config_file'] = os.path.abspath(config_file)
+                cfg_dict['config_name'] = os.path.splitext(os.path.basename(config_file))[0]
                 cfg_dict['config_path'] = os.path.abspath(os.path.dirname(config_file))
-        
+                cfg_dict['current_path'] = os.path.curdir
+
         super(YamlParser, self).__init__(cfg_dict)
 
 

@@ -1,4 +1,4 @@
-name: "deep_joint_filter"
+name: "djf_rgbnir256_gaussion25_adam_0_0.9"
 
 
 model:
@@ -30,8 +30,12 @@ model:
     padding: [2,2,2]
 
 
+loss:
+  name: "l2"
+
+
 dataset:
-  name: "none"
+  name: "RGB-NIR"
   input_size: [256, 256]
   # train:
   #   target: /data/zf/gan/yxf/new_data/gauss50/noise/
@@ -86,12 +90,14 @@ tester:
 
 verbose: True
 html: True
+seed: 7
 log_interval: 100
-eval_interval: 1000
-test_interval: 1000
-sample_interval: 1000
-save_interval: 1000
-save_path: checkpoints
+eval_interval: 5000
+test_interval: 5000
+sample_interval: 5000
+save_interval: 5000
+save_path: outputs
+ckpt_path: checkpoints
 samples_path: samples
 outputs_path: results
 sample_size: 8
